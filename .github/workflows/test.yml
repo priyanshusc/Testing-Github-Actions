@@ -1,0 +1,42 @@
+# .github/workflows/test.yml
+name: Full Stack Testing Pipeline (Jest + Supertest + Playwright)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  run-all-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Download your repository's code onto the GitHub virtual machine
+      - name: Checkout project code
+        uses: actions/checkout@v4
+
+      # 2. Set up Node.js on the virtual machine
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 3. Install all dependencies (express, jest, supertest, playwright)
+      - name: Install dependencies
+        run: npm install
+
+      # 4. Install Playwright Browsers (Linux needs this to run headless Chrome)
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      # 5. Run Jest & Supertest Suite (Unit + Integration)
+      - name: Run Jest & Supertest
+        run: npm test
+
+      # 6. Start the Backend Server in the background and Run Playwright E2E Tests
+      # We use '&' to run the server in the background so the terminal can keep executing commands!
+      - name: Run Playwright End-to-End Tests
+        run: |
+          node runServer.js &
+          npx playwright test tests/register.spec.js
